@@ -209,6 +209,44 @@ module Alipay
       request_uri(params, options).to_s
     end
 
+    ALIPAY_TRADE_PRECREATE_REQUIRED_PARAMS = %w( app_id biz_content notify_url )
+    def self.create_trade_precreate(params, options = {})
+      params = Utils.stringify_keys(params)
+      Alipay::Service.check_required_params(params, ALIPAY_TRADE_PRECREATE_REQUIRED_PARAMS)
+      key = options[:key] || Alipay.key
+
+      params = {
+        'method'         => 'alipay.trade.precreate',
+        'charset'        => 'utf-8',
+        'version'        => '1.0',
+        'timestamp'      => Time.now.utc.strftime('%Y-%m-%d %H:%M:%S').to_s,
+        'sign_type'      => 'RSA'
+      }.merge(params)
+
+      string = Alipay::App::Sign.params_to_sorted_string(params)
+      sign = CGI.escape(Alipay::Sign::RSA.sign(key, string))
+      encoded_string = Alipay::App::Sign.params_to_encoded_string(params)
+
+      url_params = %Q(#{encoded_string}&sign=#{sign})
+      "#{GATEWAY_URL}?#{url_params}"
+    end
+
+    ALIPAY_TRADE_PAGE_PAY_REQUIRED_PARAMS = %w( app_id biz_content notify_url )
+    def self.create_trade_page_pay(params, options = {})
+      params = Utils.stringify_keys(params)
+      Alipay::Service.check_required_params(params, ALIPAY_TRADE_PRECREATE_REQUIRED_PARAMS)
+      key = options[:key] || Alipay.key
+
+      params = {
+        'method'         => 'alipay.trade.page.pay',
+        'charset'        => 'utf-8',
+        'version'        => '1.0',
+        'timestamp'      => Time.now.utc.strftime('%Y-%m-%d %H:%M:%S').to_s
+      }.merge(params)
+
+      request_uri(params, options).to_s
+    end
+
     def self.request_uri(params, options = {})
       uri = URI(GATEWAY_URL)
       uri.query = URI.encode_www_form(sign_params(params, options))
