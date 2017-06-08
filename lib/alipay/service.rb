@@ -1,6 +1,7 @@
 module Alipay
   module Service
     GATEWAY_URL = 'https://mapi.alipay.com/gateway.do'
+    OPENAPI_URL = 'https://openapi.alipay.com/gateway.do'
 
     CREATE_PARTNER_TRADE_BY_BUYER_REQUIRED_PARAMS = %w( out_trade_no subject logistics_type logistics_fee logistics_payment price quantity )
     def self.create_partner_trade_by_buyer_url(params, options = {})
@@ -212,39 +213,45 @@ module Alipay
     ALIPAY_TRADE_PRECREATE_REQUIRED_PARAMS = %w( app_id biz_content notify_url )
     def self.create_trade_precreate(params, options = {})
       params = Utils.stringify_keys(params)
-      Alipay::Service.check_required_params(params, ALIPAY_TRADE_PRECREATE_REQUIRED_PARAMS)
-      key = options[:key] || Alipay.key
+      check_required_params(params, ALIPAY_TRADE_PRECREATE_REQUIRED_PARAMS)
+      sign_type = options[:sign_type] || 'RSA'
 
       params = {
         'method'         => 'alipay.trade.precreate',
         'charset'        => 'utf-8',
         'version'        => '1.0',
         'timestamp'      => Time.now.utc.strftime('%Y-%m-%d %H:%M:%S').to_s,
-        'sign_type'      => 'RSA'
+        'sign_type'      => sign_type
       }.merge(params)
 
-      string = Alipay::App::Sign.params_to_sorted_string(params)
-      sign = CGI.escape(Alipay::Sign::RSA.sign(key, string))
-      encoded_string = Alipay::App::Sign.params_to_encoded_string(params)
-
-      url_params = %Q(#{encoded_string}&sign=#{sign})
-      "#{GATEWAY_URL}?#{url_params}"
+      openapi_uri(params, options)
     end
 
     ALIPAY_TRADE_PAGE_PAY_REQUIRED_PARAMS = %w( app_id biz_content notify_url )
     def self.create_trade_page_pay(params, options = {})
       params = Utils.stringify_keys(params)
-      Alipay::Service.check_required_params(params, ALIPAY_TRADE_PRECREATE_REQUIRED_PARAMS)
-      key = options[:key] || Alipay.key
+      check_required_params(params, ALIPAY_TRADE_PRECREATE_REQUIRED_PARAMS)
+      sign_type = options[:sign_type] || 'RSA'
 
       params = {
         'method'         => 'alipay.trade.page.pay',
         'charset'        => 'utf-8',
         'version'        => '1.0',
-        'timestamp'      => Time.now.utc.strftime('%Y-%m-%d %H:%M:%S').to_s
+        'timestamp'      => Time.now.utc.strftime('%Y-%m-%d %H:%M:%S').to_s,
+        'sign_type'      => sign_type
       }.merge(params)
 
-      request_uri(params, options).to_s
+      openapi_uri(params, options)
+    end
+
+    def self.openapi_uri(params, options = {})
+      key = options[:key] || Alipay.key
+      string = Alipay::App::Sign.params_to_sorted_string(params)
+      sign = CGI.escape(eval("Alipay::Sign::#{params['sign_type']}").sign(key, string))
+      encoded_string = Alipay::App::Sign.params_to_encoded_string(params)
+
+      uri_params = %Q(#{encoded_string}&sign=#{sign})
+      "#{OPENAPI_URL}?#{uri_params}"
     end
 
     def self.request_uri(params, options = {})

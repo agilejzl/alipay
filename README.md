@@ -24,7 +24,7 @@ $ bundle
 Alipay.pid = 'YOUR_PID'
 Alipay.key = 'YOUR_KEY'
 
-#Alipay.sign_type = 'MD5' # Available values: MD5, RSA. Default is MD5
+#Alipay.sign_type = 'MD5' # Available values: MD5, RSA, RSA2. Default is MD5
 #Alipay.debug_mode = true # Enable parameter check. Default is true.
 ```
 
@@ -41,6 +41,41 @@ Service.create_partner_trade_by_buyer_url({
 ```
 
 ## Service
+
+### 电脑网站支付页面接口
+
+#### Name
+
+```ruby
+create_trade_page_pay
+```
+
+#### Definition
+
+```ruby
+Alipay::Service.create_trade_page_pay({ARGUMENTS}, {OPTIONS})
+```
+
+#### Example
+
+```ruby
+biz_content = {
+  'out_trade_no': Time.now.to_i,
+  'product_code': 'FAST_INSTANT_TRADE_PAY',
+  'subject': subject,
+  'total_amount': 0.01
+}.to_json
+
+pay_url = Alipay::Service.create_trade_page_pay({
+  notify_url: notify_url,
+  app_id: app_id,
+  biz_content: biz_content
+}, {
+    sign_type: 'RSA2',
+    key: 'your_rsa2_key'
+})
+# => 'https://openapi.alipay.com/gateway.do?app_id=your_app_id&biz_content=...'
+```
 
 ### 担保交易收款接口
 

@@ -11,10 +11,12 @@ module Alipay
         MD5.sign(key, string)
       when 'RSA'
         RSA.sign(key, string)
+      when 'RSA2'
+        RSA2.sign(key, string)
       when 'DSA'
         DSA.sign(key, string)
       else
-        raise ArgumentError, "invalid sign_type #{sign_type}, allow value: 'MD5', 'RSA', 'DSA'"
+        raise ArgumentError, "invalid sign_type #{sign_type}, allow value: 'MD5', 'RSA', 'RSA2', 'DSA'"
       end
     end
 
@@ -40,6 +42,8 @@ NG9zpgmLCUYuLkxpLQIDAQAB
         MD5.verify?(key, string, sign)
       when 'RSA'
         RSA.verify?(ALIPAY_RSA_PUBLIC_KEY, string, sign)
+      when 'RSA2'
+        RSA2.verify?(ALIPAY_RSA_PUBLIC_KEY, string, sign)
       when 'DSA'
         DSA.verify?(string, sign)
       else
