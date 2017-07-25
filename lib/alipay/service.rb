@@ -261,6 +261,23 @@ module Alipay
       Net::HTTP.get(request_uri(params, options, OPENAPI_URL))
     end
 
+    CLOSE_TRADE2_REQUIRED_OPTIONAL_PARAMS = %w( app_id biz_content )
+    def self.close_trade2(params, options = {})
+      params = Utils.stringify_keys(params)
+      check_required_params(params, CLOSE_TRADE2_REQUIRED_OPTIONAL_PARAMS)
+      sign_type = options[:sign_type] || 'RSA'
+
+      params =   {
+        "method"         => 'alipay.trade.close',
+        'charset'        => 'utf-8',
+        'version'        => '1.0',
+        'timestamp'      => Time.now.utc.strftime('%Y-%m-%d %H:%M:%S').to_s,
+        'sign_type'      => sign_type
+      }.merge(params)
+
+      Net::HTTP.get(request_uri(params, options, OPENAPI_URL))
+    end
+
     def self.openapi_uri(params, options = {})
       key = options[:key] || Alipay.key
       string = Alipay::App::Sign.params_to_sorted_string(params)
